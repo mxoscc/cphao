@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>超级大乐透智能分析系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5); }
+            50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.8); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+        .glow-effect {
+            animation: pulse-glow 2s infinite;
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        .number-ball {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 3px;
+            transition: all 0.3s ease;
+        }
+        .number-ball:hover {
+            transform: scale(1.15);
+        }
+        .front-ball {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .back-ball {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- 标题 -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                🎰 超级大乐透智能分析系统
+            </h1>
+            <p class="text-gray-400 text-lg">基于历史数据的智能分析与预测</p>
+            <p class="text-sm text-gray-500 mt-2">⚠️ 仅供参考娱乐，理性购彩</p>
+        </header>
+
+        <!-- 数据筛选控制栏 -->
+        <section class="mb-8 bg-gray-800 rounded-xl p-6 border border-gray-700">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <h2 class="text-xl font-bold flex items-center">
+                    <span class="mr-2">🔍</span>
+                    数据筛选与对比
+                </h2>
+                
+                <div class="flex flex-wrap gap-4">
+                    <!-- 期数选择 -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-400">分析期数:</label>
+                        <select id="period-select" onchange="updatePeriodRange()" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 focus:outline-none focus:border-blue-500">
+                            <option value="5">最近5期</option>
+                            <option value="10" selected>最近10期</option>
+                            <option value="20">最近20期</option>
+                            <option value="50">最近50期</option>
+                        </select>
+                    </div>
+                    
+                    <!-- 自定义日期范围 -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-400">开始期:</label>
+                        <input type="number" id="start-period" placeholder="如26020" min="26000" max="26029" 
+                            class="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 w-24 focus:outline-none focus:border-blue-500">
+                    </div>
+                    
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm text-gray-400">结束期:</label>
+                        <input type="number" id="end-period" placeholder="如26029" min="26000" max="26029" 
+                            class="bg-gray-700 text-white px-3 py-2 rounded-lg border border-gray-600 w-24 focus:outline-none focus:border-blue-500">
+                    </div>
+                    
+                    <!-- 操作按钮 -->
+                    <button onclick="applyCustomFilter()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold">
+                        应用筛选
+                    </button>
+                    
+                    <button onclick="resetFilter()" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors">
+                        重置
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 快速筛选标签 -->
+            <div class="flex flex-wrap gap-2 mt-4">
+                <span class="text-sm text-gray-400 mr-2">快速筛选:</span>
+                <button onclick="quickFilter('high_odd')" class="bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 px-3 py-1 rounded-full text-sm border border-purple-600 transition-colors">
+                    高奇偶比期
+                </button>
+                <button onclick="quickFilter('high_sum')" class="bg-orange-600/30 hover:bg-orange-600/50 text-orange-300 px-3 py-1 rounded-full text-sm border border-orange-600 transition-colors">
+                    高和值期
+                </button>
+                <button onclick="quickFilter('low_sum')" class="bg-green-600/30 hover:bg-green-600/50 text-green-300 px-3 py-1 rounded-full text-sm border border-green-600 transition-colors">
+                    低和值期
+                </button>
+                <button onclick="quickFilter('consecutive')" class="bg-pink-600/30 hover:bg-pink-600/50 text-pink-300 px-3 py-1 rounded-full text-sm border border-pink-600 transition-colors">
+                    连号出现期
+                </button>
+                <button onclick="quickFilter('repeat')" class="bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-300 px-3 py-1 rounded-full text-sm border border-cyan-600 transition-colors">
+                    重复号码多期
+                </button>
+            </div>
+        </section>
+
+        <!-- 数据对比模块 -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold flex items-center">
+                    <span class="mr-3">⚖️</span>
+                    数据对比分析
+                </h2>
+                <button onclick="comparePeriods()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-4 py-2 rounded-lg transition-colors font-semibold">
+                    对比分析
+                </button>
+            </div>
+            
+            <!-- 对比设置 -->
+            <div class="bg-gray-800 rounded-xl p-6 mb-6 border border-gray-700">
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">对比期A:</label>
+                        <select id="compare-period-a" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 w-full focus:outline-none focus:border-blue-500">
+                            <!-- 动态生成 -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-2">对比期B:</label>
+                        <select id="compare-period-b" class="bg-gray-700 text-white px-4 py-2 rounded-lg border border-gray-600 w-full focus:outline-none focus:border-blue-500">
+                            <!-- 动态生成 -->
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="comparePeriods()" class="w-full bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors font-semibold">
+                            开始对比
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 对比结果 -->
+            <div id="comparison-result" class="bg-gray-800 rounded-xl p-6 border border-gray-700 hidden">
+                <h3 class="text-xl font-semibold mb-4 text-center">期数对比结果</h3>
+                
+                <!-- 号码对比 -->
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-gray-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold mb-3 text-blue-400">期号 <span id="compare-a-period">-</span></h4>
+                        <div id="compare-a-details" class="text-sm"></div>
+                    </div>
+                    <div class="bg-gray-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold mb-3 text-pink-400">期号 <span id="compare-b-period">-</span></h4>
+                        <div id="compare-b-details" class="text-sm"></div>
+                    </div>
+                </div>
+                
+                <!-- 差异分析 -->
+                <div class="bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-lg p-4 border border-blue-500/30">
+                    <h4 class="text-lg font-semibold mb-3">📊 差异分析</h4>
+                    <div id="compare-differences" class="grid md:grid-cols-2 gap-4 text-sm"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 智能预测卡片 -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-6 md:p-8 shadow-2xl glow-effect">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl md:text-3xl font-bold flex items-center">
+                        <span class="mr-3">🔮</span>
+                        智能预测下一期
+                    </h2>
+                    <span id="confidence" class="bg-white/20 px-4 py-2 rounded-full text-sm font-semibold">
+                        置信度: 计算中...
+                    </span>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <span class="w-3 h-3 bg-red-400 rounded-full mr-2"></span>
+                            前区号码
+                        </h3>
+                        <div id="front-prediction" class="flex flex-wrap justify-center">
+                            <span class="text-gray-400">加载中...</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/10 rounded-xl p-6 backdrop-blur-sm">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center">
+                            <span class="w-3 h-3 bg-pink-400 rounded-full mr-2"></span>
+                            后区号码
+                        </h3>
+                        <div id="back-prediction" class="flex flex-wrap justify-center">
+                            <span class="text-gray-400">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="prediction-analysis" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-3xl font-bold mb-1" id="pred-sum">-</div>
+                        <div class="text-sm text-gray-300">和值</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-3xl font-bold mb-1" id="pred-oddeven">-</div>
+                        <div class="text-sm text-gray-300">奇偶比</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-3xl font-bold mb-1" id="pred-hot">-</div>
+                        <div class="text-sm text-gray-300">热门号</div>
+                    </div>
+                    <div class="bg-white/10 rounded-lg p-4 text-center">
+                        <div class="text-3xl font-bold mb-1" id="pred-cold">-</div>
+                        <div class="text-sm text-gray-300">冷门号</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 多策略推荐 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="mr-3">💡</span>
+                多策略备选推荐
+            </h2>
+            <div id="strategy-recommendations" class="grid md:grid-cols-2 gap-6"></div>
+        </section>
+
+        <!-- 实时数据分析模块 -->
+        <section class="mb-12">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold flex items-center">
+                    <span class="mr-3">📡</span>
+                    实时数据分析
+                </h2>
+                <div class="flex items-center text-sm">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                    <span class="text-gray-400">数据实时更新</span>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-green-600/20 to-blue-600/20 rounded-xl p-6 mb-6 border border-green-500/30">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🎯</span>
+                    最新开奖结果
+                </h3>
+                <div id="latest-draw" class="grid md:grid-cols-2 gap-6"></div>
+            </div>
+            
+            <div class="grid md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gray-800 rounded-xl p-5 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-blue-400 mb-2" id="stat-draws">10</div>
+                    <div class="text-gray-400">分析期数</div>
+                </div>
+                <div class="bg-gray-800 rounded-xl p-5 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-green-400 mb-2" id="stat-avg-sum">-</div>
+                    <div class="text-gray-400">平均和值</div>
+                </div>
+                <div class="bg-gray-800 rounded-xl p-5 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-yellow-400 mb-2" id="stat-hot-freq">-</div>
+                    <div class="text-gray-400">最高出现频率</div>
+                </div>
+                <div class="bg-gray-800 rounded-xl p-5 text-center border border-gray-700">
+                    <div class="text-4xl font-bold text-purple-400 mb-2" id="stat-cold-count">-</div>
+                    <div class="text-gray-400">冷门号码数</div>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="text-xl mr-2">📊</span>
+                        奇偶比趋势
+                    </h3>
+                    <div id="odd-even-chart" class="space-y-3"></div>
+                </div>
+                
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center">
+                        <span class="text-xl mr-2">📈</span>
+                        和值走势图
+                    </h3>
+                    <div id="sum-chart" class="space-y-2"></div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <span class="text-xl mr-2">🎨</span>
+                    前区号码分布热力图
+                </h3>
+                <div id="heatmap" class="grid grid-cols-7 gap-2"></div>
+                <div class="flex justify-center mt-4 gap-6 text-sm">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                        <span class="text-gray-400">高频（3次+）</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                        <span class="text-gray-400">中频（2次）</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                        <span class="text-gray-400">低频（1次）</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 bg-gray-600 rounded mr-2"></div>
+                        <span class="text-gray-400">未出现</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 历史数据参考 -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 flex items-center">
+                <span class="mr-3">📊</span>
+                历史数据分析
+            </h2>
+            
+            <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="text-2xl mr-2">🔥</span>
+                    热门号码
+                </h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-sm text-gray-400 mb-2">前区热门</div>
+                        <div id="hot-front" class="flex flex-wrap">
+                            <span class="text-gray-500">加载中...</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-2">后区热门</div>
+                        <div id="hot-back" class="flex flex-wrap">
+                            <span class="text-gray-500">加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-xl p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="text-2xl mr-2">❄️</span>
+                    冷门号码（未出现）
+                </h3>
+                <div id="cold-front" class="flex flex-wrap gap-2">
+                    <span class="text-gray-500">加载中...</span>
+                </div>
+            </div>
+            
+            <div class="bg-gray-800 rounded-xl p-6 overflow-x-auto">
+                <h3 class="text-xl font-semibold mb-4 flex items-center">
+                    <span class="text-2xl mr-2">📋</span>
+                    开奖记录
+                </h3>
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="text-left py-3 px-4">期号</th>
+                            <th class="text-left py-3 px-4">日期</th>
+                            <th class="text-left py-3 px-4">前区</th>
+                            <th class="text-left py-3 px-4">后区</th>
+                            <th class="text-left py-3 px-4">和值</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table">
+                        <tr><td colspan="5" class="text-center py-4 text-gray-500">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 操作按钮 -->
+        <section class="text-center mb-12">
+            <button id="refresh-btn" onclick="refreshData()" 
+                class="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95">
+                🔄 刷新预测
+            </button>
+        </section>
+
+        <!-- 提示信息 -->
+        <footer class="bg-gray-800 rounded-xl p-6 text-center">
+            <div class="text-yellow-400 font-semibold mb-2">⚠️ 重要提示</div>
+            <p class="text-gray-400 text-sm leading-relaxed">
+                超级大乐透开奖完全随机，历史数据不能预测未来结果。以上分析仅供参考娱乐，切勿过度依赖。
+                理性购彩，量力而行。设定预算，不要超过承受能力。把购彩当作娱乐，不要视为投资。
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // 历史数据
+        const historicalData = {
+            '26029': { date: '2026-03-21', front: [3, 5, 17, 33, 35], back: [5, 7] },
+            '26028': { date: '2026-03-18', front: [15, 27, 29, 30, 34], back: [1, 10] },
+            '26027': { date: '2026-03-16', front: [9, 10, 11, 12, 16], back: [1, 11] },
+            '26026': { date: '2026-03-14', front: [10, 11, 22, 26, 32], back: [1, 8] },
+            '26025': { date: '2026-03-11', front: [3, 15, 24, 28, 29], back: [3, 7] },
+            '26024': { date: '2026-03-09', front: [2, 4, 8, 10, 21], back: [9, 12] },
+            '26023': { date: '2026-03-07', front: [9, 25, 26, 27, 28], back: [1, 8] },
+            '26022': { date: '2026-03-04', front: [5, 9, 10, 18, 26], back: [5, 6] },
+            '26021': { date: '2026-03-02', front: [5, 8, 12, 14, 17], back: [4, 5] },
+            '26020': { date: '2026-02-28', front: [1, 10, 21, 23, 29], back: [10, 12] }
+        };
+
+        // 当前筛选的数据范围
+        let currentPeriodRange = { start: '26020', end: '26029' };
+        let allPeriods = Object.keys(historicalData).sort().reverse();
+
+        // 初始化期数选择器
+        function initializePeriodSelectors() {
+            const compareA = document.getElementById('compare-period-a');
+            const compareB = document.getElementById('compare-period-b');
+            
+            const options = allPeriods.map(period => 
+                `<option value="${period}">${period}</option>`
+            ).join('');
+            
+            compareA.innerHTML = options;
+            compareB.innerHTML = options;
+            
+            if (allPeriods.length >= 2) {
+                compareA.value = allPeriods[0];
+                compareB.value = allPeriods[1];
+            }
+        }
+
+        // 更新期数范围
+        function updatePeriodRange() {
+            const count = parseInt(document.getElementById('period-select').value);
+            const sortedPeriods = Object.keys(historicalData).sort().reverse();
+            currentPeriodRange = {
+                start: sortedPeriods[count - 1],
+                end: sortedPeriods[0]
+            };
+            refreshData();
+        }
+
+        // 应用自定义筛选
+        function applyCustomFilter() {
+            const start = document.getElementById('start-period').value;
+            const end = document.getElementById('end-period').value;
+            
+            if (!start || !end) {
+                alert('请输入开始期号和结束期号');
+                return;
+            }
+            
+            if (parseInt(start) > parseInt(end)) {
+                alert('开始期号不能大于结束期号');
+                return;
+            }
+            
+            currentPeriodRange = { start, end };
+            refreshData();
+        }
+
+        // 重置筛选
+        function resetFilter() {
+            document.getElementById('period-select').value = '10';
+            document.getElementById('start-period').value = '';
+            document.getElementById('end-period').value = '';
+            updatePeriodRange();
+        }
+
+        // 快速筛选
+        function quickFilter(type) {
+            const sortedPeriods = Object.entries(historicalData).sort((a, b) => parseInt(b[0]) - parseInt(a[0]));
+            let filtered = [];
+            
+            switch(type) {
+                case 'high_odd':
+                    filtered = sortedPeriods.filter(([_, data]) => {
+                        const oddCount = data.front.filter(n => n % 2 === 1).length;
+                        return oddCount >= 3;
+                    });
+                    break;
+                case 'high_sum':
+                    filtered = sortedPeriods.filter(([_, data]) => {
+                        const sum = data.front.reduce((a, b) => a + b, 0);
+                        return sum >= 100;
+                    });
+                    break;
+                case 'low_sum':
+                    filtered = sortedPeriods.filter(([_, data]) => {
+                        const sum = data.front.reduce((a, b) => a + b, 0);
+                        return sum <= 80;
+                    });
+                    break;
+                case 'consecutive':
+                    filtered = sortedPeriods.filter(([_, data]) => {
+                        for (let i = 0; i < data.front.length - 1; i++) {
+                            if (data.front[i + 1] - data.front[i] === 1) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    });
+                    break;
+                case 'repeat':
+                    filtered = sortedPeriods.filter(([period, data], index) => {
+                        if (index === 0) return false;
+                        const prevData = sortedPeriods[index - 1][1];
+                        const repeatCount = data.front.filter(n => prevData.front.includes(n)).length;
+                        return repeatCount >= 2;
+                    });
+                    break;
+            }
+            
+            if (filtered.length === 0) {
+                alert('未找到符合条件的数据');
+                return;
+            }
+            
+            currentPeriodRange = {
+                start: filtered[filtered.length - 1][0],
+                end: filtered[0][0]
+            };
+            refreshData();
+        }
+
+        // 获取筛选后的数据
+        function getFilteredData() {
+            const sortedPeriods = Object.entries(historicalData).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+            return sortedPeriods.filter(([period]) => {
+                return parseInt(period) >= parseInt(currentPeriodRange.start) && 
+                       parseInt(period) <= parseInt(currentPeriodRange.end);
+            });
+        }
+
+        // 对比两期数据
+        function comparePeriods() {
+            const periodA = document.getElementById('compare-period-a').value;
+            const periodB = document.getElementById('compare-period-b').value;
+            
+            if (periodA === periodB) {
+                alert('请选择两期不同的数据');
+                return;
+            }
+            
+            const dataA = historicalData[periodA];
+            const dataB = historicalData[periodB];
+            
+            document.getElementById('compare-a-period').textContent = periodA;
+            document.getElementById('compare-b-period').textContent = periodB;
+            
+            // 期A详情
+            const sumA = dataA.front.reduce((a, b) => a + b, 0);
+            const oddCountA = dataA.front.filter(n => n % 2 === 1).length;
+            document.getElementById('compare-a-details').innerHTML = `
+                <div class="mb-2"><span class="text-gray-400">日期:</span> ${dataA.date}</div>
+                <div class="mb-2"><span class="text-gray-400">前区:</span> ${dataA.front.map(n => formatNumber(n)).join(', ')}</div>
+                <div class="mb-2"><span class="text-gray-400">后区:</span> ${dataA.back.map(n => formatNumber(n)).join(', ')}</div>
+                <div class="mb-2"><span class="text-gray-400">和值:</span> <span class="text-blue-400 font-bold">${sumA}</span></div>
+                <div><span class="text-gray-400">奇偶比:</span> <span class="text-blue-400 font-bold">${oddCountA}:${5 - oddCountA}</span></div>
+            `;
+            
+            // 期B详情
+            const sumB = dataB.front.reduce((a, b) => a + b, 0);
+            const oddCountB = dataB.front.filter(n => n % 2 === 1).length;
+            document.getElementById('compare-b-details').innerHTML = `
+                <div class="mb-2"><span class="text-gray-400">日期:</span> ${dataB.date}</div>
+                <div class="mb-2"><span class="text-gray-400">前区:</span> ${dataB.front.map(n => formatNumber(n)).join(', ')}</div>
+                <div class="mb-2"><span class="text-gray-400">后区:</span> ${dataB.back.map(n => formatNumber(n)).join(', ')}</div>
+                <div class="mb-2"><span class="text-gray-400">和值:</span> <span class="text-pink-400 font-bold">${sumB}</span></div>
+                <div><span class="text-gray-400">奇偶比:</span> <span class="text-pink-400 font-bold">${oddCountB}:${5 - oddCountB}</span></div>
+            `;
+            
+            // 差异分析
+            const sameFront = dataA.front.filter(n => dataB.front.includes(n));
+            const sameBack = dataA.back.filter(n => dataB.back.includes(n));
+            const diffFrontA = dataA.front.filter(n => !dataB.front.includes(n));
+            const diffFrontB = dataB.front.filter(n => !dataA.front.includes(n));
+            const sumDiff = sumA - sumB;
+            const oddDiff = oddCountA - oddCountB;
+            
+            document.getElementById('compare-differences').innerHTML = `
+                <div class="bg-white/10 rounded p-3">
+                    <div class="text-gray-400 mb-2">相同前区号码</div>
+                    <div class="text-green-400 font-bold">${sameFront.length > 0 ? sameFront.map(n => formatNumber(n)).join(', ') : '无'}</div>
+                </div>
+                <div class="bg-white/10 rounded p-3">
+                    <div class="text-gray-400 mb-2">相同后区号码</div>
+                    <div class="text-green-400 font-bold">${sameBack.length > 0 ? sameBack.map(n => formatNumber(n)).join(', ') : '无'}</div>
+                </div>
+                <div class="bg-white/10 rounded p-3">
+                    <div class="text-gray-400 mb-2">期A独有前区</div>
+                    <div class="text-blue-400 font-bold">${diffFrontA.map(n => formatNumber(n)).join(', ')}</div>
+                </div>
+                <div class="bg-white/10 rounded p-3">
+                    <div class="text-gray-400 mb-2">期B独有前区</div>
+                    <div class="text-pink-400 font-bold">${diffFrontB.map(n => formatNumber(n)).join(', ')}</div>
+                </div>
+                <div class="bg-white/10 rounded p-3">
+                    <div class="text-gray-400 mb-2">和值差异</div>
+                    <div class="${sumDiff > 0 ? 'text-orange-400' : sumDiff < 0 ? 'text-cyan-400' : 'text-gray-400'} font-bold">
+                        ${sumDiff > 0 ? '+' : ''}${sumDiff} (A${sumDiff > 0 ? '大' : sumDiff < 0 ? '小' : '同'})
+                    </div>
+                </div>
+                <div class="bg-white/10 rounded p-3">
+                    <div class="text-gray-400 mb-2">奇偶数差异</div>
+                    <div class="${oddDiff > 0 ? 'text-orange-400' : oddDiff < 0 ? 'text-cyan-400' : 'text-gray-400'} font-bold">
+                        ${oddDiff > 0 ? '+' : ''}${oddDiff} (A${oddDiff > 0 ? '多' : oddDiff < 0 ? '少' : '同'})
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('comparison-result').classList.remove('hidden');
+        }
+
+        // 格式化数字
+        function formatNumber(num) {
+            return num.toString().padStart(2, '0');
+        }
+
+        // 创建号码球
+        function createNumberBalls(numbers, type) {
+            return numbers.map(num => 
+                `<span class="number-ball ${type}-ball float-animation" style="animation-delay: ${Math.random() * 2}s">${formatNumber(num)}</span>`
+            ).join('');
+        }
+
+        // 计算频率
+        function calculateFrequency(filteredData = null) {
+            const dataToAnalyze = filteredData || getFilteredData();
+            const frontCounter = {};
+            const backCounter = {};
+            
+            dataToAnalyze.forEach(([_, data]) => {
+                data.front.forEach(num => {
+                    frontCounter[num] = (frontCounter[num] || 0) + 1;
+                });
+                data.back.forEach(num => {
+                    backCounter[num] = (backCounter[num] || 0) + 1;
+                });
+            });
+            
+            return {
+                front: Object.entries(frontCounter).sort((a, b) => b[1] - a[1]),
+                back: Object.entries(backCounter).sort((a, b) => b[1] - a[1])
+            };
+        }
+
+        // 获取冷门号码
+        function getColdNumbers() {
+            const freq = calculateFrequency();
+            const allFront = Array.from({length: 35}, (_, i) => i + 1);
+            const allBack = Array.from({length: 12}, (_, i) => i + 1);
+            
+            const hotFront = new Set(freq.front.map(([num]) => parseInt(num)));
+            const hotBack = new Set(freq.back.map(([num]) => parseInt(num)));
+            
+            const coldFront = allFront.filter(n => !hotFront.has(n));
+            const coldBack = allBack.filter(n => !hotBack.has(n));
+            
+            return { coldFront, coldBack };
+        }
+
+        // 生成推荐号码
+        function generateRecommendation(strategy) {
+            const freq = calculateFrequency();
+            const cold = getColdNumbers();
+            const allFront = Array.from({length: 35}, (_, i) => i + 1);
+            const allBack = Array.from({length: 12}, (_, i) => i + 1);
+            
+            let front, back;
+            
+            switch(strategy) {
+                case 'hot':
+                    const hotFrontNums = freq.front.slice(0, 8).map(([n]) => parseInt(n));
+                    const hotBackNums = freq.back.slice(0, 4).map(([n]) => parseInt(n));
+                    front = hotFrontNums.sort(() => Math.random() - 0.5).slice(0, 5).sort((a, b) => a - b);
+                    back = hotBackNums.sort(() => Math.random() - 0.5).slice(0, 2).sort((a, b) => a - b);
+                    break;
+                    
+                case 'cold':
+                    if (cold.coldFront.length >= 5) {
+                        front = cold.coldFront.sort(() => Math.random() - 0.5).slice(0, 5).sort((a, b) => a - b);
+                    } else {
+                        front = allFront.sort(() => Math.random() - 0.5).slice(0, 5).sort((a, b) => a - b);
+                    }
+                    if (cold.coldBack.length >= 2) {
+                        back = cold.coldBack.sort(() => Math.random() - 0.5).slice(0, 2).sort((a, b) => a - b);
+                    } else {
+                        back = allBack.sort(() => Math.random() - 0.5).slice(0, 2).sort((a, b) => a - b);
+                    }
+                    break;
+                    
+                case 'random':
+                    front = allFront.sort(() => Math.random() - 0.5).slice(0, 5).sort((a, b) => a - b);
+                    back = allBack.sort(() => Math.random() - 0.5).slice(0, 2).sort((a, b) => a - b);
+                    break;
+                    
+                default:
+                    const hotNums = freq.front.slice(0, 5).map(([n]) => parseInt(n));
+                    const coldNums = cold.coldFront.slice(0, 5);
+                    const combined = [...hotNums.slice(0, 2), ...coldNums.slice(0, 2)];
+                    const remaining = allFront.filter(n => !combined.includes(n));
+                    const extra = remaining.sort(() => Math.random() - 0.5).slice(0, 5 - combined.length);
+                    front = [...combined, ...extra].sort((a, b) => a - b);
+                    
+                    const hotBackNums = freq.back.slice(0, 3).map(([n]) => parseInt(n));
+                    const coldBackNums = cold.coldBack.slice(0, 1);
+                    const backCombined = [...hotBackNums.slice(0, 1), ...coldBackNums];
+                    const backRemaining = allBack.filter(n => !backCombined.includes(n));
+                    const backExtra = backRemaining.sort(() => Math.random() - 0.5).slice(0, 2 - backCombined.length);
+                    back = [...backCombined, ...backExtra].sort((a, b) => a - b);
+            }
+            
+            return { front, back };
+        }
+
+        // 智能预测
+        function predictNextDraw() {
+            const freq = calculateFrequency();
+            const cold = getColdNumbers();
+            
+            const zone1 = Array.from({length: 12}, (_, i) => i + 1);
+            const zone2 = Array.from({length: 12}, (_, i) => i + 13);
+            const zone3 = Array.from({length: 11}, (_, i) => i + 25);
+            
+            const hotNums = new Set(freq.front.slice(0, 4).map(([n]) => parseInt(n)));
+            const coldNums = new Set(cold.coldFront.slice(0, 3));
+            
+            const selected = [];
+            [zone1, zone2, zone3].forEach((zone, idx) => {
+                const candidates = zone.filter(n => hotNums.has(n) || coldNums.has(n) || Math.random() > 0.7);
+                if (candidates.length > 0) {
+                    selected.push(candidates[Math.floor(Math.random() * candidates.length)]);
+                }
+            });
+            
+            const remaining = Array.from({length: 35}, (_, i) => i + 1).filter(n => !selected.includes(n));
+            while (selected.length < 5) {
+                const randIndex = Math.floor(Math.random() * remaining.length);
+                selected.push(remaining.splice(randIndex, 1)[0]);
+            }
+            const front = selected.sort((a, b) => a - b);
+            
+            const hotBack = freq.back.slice(0, 3).map(([n]) => parseInt(n));
+            const coldBack = cold.coldBack;
+            
+            let back;
+            if (Math.random() < 0.6 && hotBack.length > 0) {
+                back = [hotBack[0]];
+            } else if (coldBack.length > 0) {
+                back = [coldBack[0]];
+            } else {
+                back = [Math.floor(Math.random() * 12) + 1];
+            }
+            
+            const remainingBack = Array.from({length: 12}, (_, i) => i + 1).filter(n => !back.includes(n));
+            back.push(remainingBack[Math.floor(Math.random() * remainingBack.length)]);
+            back.sort((a, b) => a - b);
+            
+            const sum = front.reduce((a, b) => a + b, 0);
+            const oddCount = front.filter(n => n % 2 === 1).length;
+            const sumScore = Math.max(0, 100 - Math.abs(sum - 95)) / 100;
+            const oddEvenScore = (oddCount === 2 || oddCount === 3) ? 1.0 : 0.7;
+            const confidence = ((sumScore + oddEvenScore) / 2 * 100).toFixed(1);
+            
+            const hotUsed = front.filter(n => hotNums.has(n)).length + back.filter(n => hotBack.includes(n)).length;
+            const coldUsed = front.filter(n => coldNums.has(n)).length + back.filter(n => coldBack.includes(n)).length;
+            
+            return { front, back, sum, oddCount, confidence, hotUsed, coldUsed };
+        }
+
+        // 统计分析
+        function analyzeStatistics() {
+            const filteredData = getFilteredData();
+            const freq = calculateFrequency(filteredData);
+            const cold = getColdNumbers();
+            
+            // 最新开奖
+            const latest = filteredData[filteredData.length - 1];
+            const [period, data] = latest;
+            const sum = data.front.reduce((a, b) => a + b, 0);
+            const oddCount = data.front.filter(n => n % 2 === 1).length;
+            
+            const latestHtml = `
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="text-sm text-gray-400 mb-2">期号: ${period}</div>
+                    <div class="text-sm text-gray-400 mb-2">日期: ${data.date}</div>
+                    <div class="mb-2">
+                        <div class="text-sm text-gray-400 mb-1">前区</div>
+                        <div class="flex flex-wrap">${createNumberBalls(data.front, 'front')}</div>
+                    </div>
+                    <div>
+                        <div class="text-sm text-gray-400 mb-1">后区</div>
+                        <div class="flex flex-wrap">${createNumberBalls(data.back, 'back')}</div>
+                    </div>
+                </div>
+                <div class="bg-white/10 rounded-lg p-4">
+                    <div class="text-sm text-gray-400 mb-2">开奖分析</div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white/5 rounded p-3">
+                            <div class="text-2xl font-bold text-blue-400">${sum}</div>
+                            <div class="text-xs text-gray-400">和值</div>
+                        </div>
+                        <div class="bg-white/5 rounded p-3">
+                            <div class="text-2xl font-bold text-purple-400">${oddCount}:${5 - oddCount}</div>
+                            <div class="text-xs text-gray-400">奇偶比</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-sm text-gray-400">
+                        <div>• 平均值: ${sum / 5}</div>
+                        <div>• 最大值: ${Math.max(...data.front)}</div>
+                        <div>• 最小值: ${Math.min(...data.front)}</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('latest-draw').innerHTML = latestHtml;
+            
+            // 统计指标
+            const sums = filteredData.map(([_, data]) => data.front.reduce((a, b) => a + b, 0));
+            const avgSum = (sums.reduce((a, b) => a + b, 0) / sums.length).toFixed(1);
+            const maxFreq = Math.max(...freq.front.map(([n, c]) => c));
+            
+            document.getElementById('stat-draws').textContent = filteredData.length;
+            document.getElementById('stat-avg-sum').textContent = avgSum;
+            document.getElementById('stat-hot-freq').textContent = maxFreq + '次';
+            document.getElementById('stat-cold-count').textContent = cold.coldFront.length;
+            
+            // 奇偶比趋势
+            const oddEvenChart = filteredData.map(([period, data]) => {
+                const oddCount = data.front.filter(n => n % 2 === 1).length;
+                const oddPercent = (oddCount / 5) * 100;
+                return `
+                    <div class="flex items-center">
+                        <div class="w-16 text-sm text-gray-400">${period}</div>
+                        <div class="flex-1 bg-gray-700 rounded-full h-6 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-end pr-2" style="width: ${oddPercent}%">
+                                <span class="text-xs font-bold">${oddCount}奇</span>
+                            </div>
+                        </div>
+                        <div class="w-16 text-sm text-gray-400 text-right">${5 - oddCount}偶</div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('odd-even-chart').innerHTML = oddEvenChart;
+            
+            // 和值走势
+            const maxSum = Math.max(...sums);
+            const minSum = Math.min(...sums);
+            const sumRange = maxSum - minSum;
+            
+            const sumChart = filteredData.map(([period, data]) => {
+                const sum = data.front.reduce((a, b) => a + b, 0);
+                const height = sumRange > 0 ? ((sum - minSum) / sumRange * 100) : 50;
+                const colorClass = sum > 100 ? 'from-red-500 to-orange-500' : sum > 80 ? 'from-yellow-500 to-amber-500' : 'from-green-500 to-emerald-500';
+                return `
+                    <div class="flex items-end h-20 gap-1">
+                        <div class="flex-1 bg-gradient-to-t ${colorClass} rounded-t transition-all hover:opacity-80" style="height: ${height}%">
+                            <div class="text-xs text-center font-bold mt-1">${sum}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('sum-chart').innerHTML = sumChart;
+            
+            // 热力图
+            const heatmapHtml = Array.from({length: 35}, (_, i) => {
+                const num = i + 1;
+                const freqData = freq.front.find(([n]) => parseInt(n) === num);
+                const count = freqData ? freqData[1] : 0;
+                
+                let colorClass = 'bg-gray-700';
+                if (count >= 3) colorClass = 'bg-red-500';
+                else if (count === 2) colorClass = 'bg-yellow-500';
+                else if (count === 1) colorClass = 'bg-blue-500';
+                
+                return `
+                    <div class="aspect-square ${colorClass} rounded flex items-center justify-center text-sm font-bold transition-all hover:scale-110 cursor-pointer" title="${formatNumber(num)}: ${count}次">
+                        ${formatNumber(num)}
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('heatmap').innerHTML = heatmapHtml;
+        }
+
+        // 渲染页面
+        function renderPage() {
+            // 实时数据分析
+            analyzeStatistics();
+            
+            // 智能预测
+            const prediction = predictNextDraw();
+            document.getElementById('confidence').textContent = `置信度: ${prediction.confidence}%`;
+            document.getElementById('front-prediction').innerHTML = createNumberBalls(prediction.front, 'front');
+            document.getElementById('back-prediction').innerHTML = createNumberBalls(prediction.back, 'back');
+            document.getElementById('pred-sum').textContent = prediction.sum;
+            document.getElementById('pred-oddeven').textContent = `${prediction.oddCount}:${5 - prediction.oddCount}`;
+            document.getElementById('pred-hot').textContent = prediction.hotUsed;
+            document.getElementById('pred-cold').textContent = prediction.coldUsed;
+            
+            // 多策略推荐
+            const strategies = [
+                { name: '均衡策略', type: 'balanced', icon: '⚖️', color: 'from-blue-500 to-cyan-500' },
+                { name: '热门策略', type: 'hot', icon: '🔥', color: 'from-orange-500 to-red-500' },
+                { name: '冷门策略', type: 'cold', icon: '❄️', color: 'from-cyan-500 to-blue-500' },
+                { name: '随机策略', type: 'random', icon: '🎲', color: 'from-purple-500 to-pink-500' }
+            ];
+            
+            const strategiesHtml = strategies.map(strategy => {
+                const rec = generateRecommendation(strategy.type);
+                const sum = rec.front.reduce((a, b) => a + b, 0);
+                const oddCount = rec.front.filter(n => n % 2 === 1).length;
+                return `
+                    <div class="bg-gradient-to-br ${strategy.color} rounded-xl p-6 shadow-lg transform hover:scale-105 transition-transform">
+                        <div class="text-xl font-bold mb-4 flex items-center">
+                            <span class="mr-2">${strategy.icon}</span>
+                            ${strategy.name}
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-sm opacity-80 mb-2">前区</div>
+                            <div class="flex flex-wrap">${createNumberBalls(rec.front, 'front')}</div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="text-sm opacity-80 mb-2">后区</div>
+                            <div class="flex flex-wrap">${createNumberBalls(rec.back, 'back')}</div>
+                        </div>
+                        <div class="flex justify-between text-sm opacity-80">
+                            <span>和值: ${sum}</span>
+                            <span>奇偶比: ${oddCount}:${5 - oddCount}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('strategy-recommendations').innerHTML = strategiesHtml;
+            
+            // 历史数据
+            const freq = calculateFrequency();
+            const cold = getColdNumbers();
+            
+            document.getElementById('hot-front').innerHTML = freq.front.slice(0, 10).map(([num, count]) => 
+                `<span class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2 inline-block">${formatNumber(parseInt(num))}(${count})</span>`
+            ).join('');
+            
+            document.getElementById('hot-back').innerHTML = freq.back.slice(0, 6).map(([num, count]) => 
+                `<span class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold mr-2 mb-2 inline-block">${formatNumber(parseInt(num))}(${count})</span>`
+            ).join('');
+            
+            document.getElementById('cold-front').innerHTML = cold.coldFront.map(num => 
+                `<span class="bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-3 py-1 rounded-full text-sm font-semibold">${formatNumber(num)}</span>`
+            ).join('');
+            
+            const filteredData = getFilteredData();
+            const historyHtml = filteredData.map(([period, data]) => {
+                const sum = data.front.reduce((a, b) => a + b, 0);
+                const oddCount = data.front.filter(n => n % 2 === 1).length;
+                return `
+                    <tr class="border-b border-gray-700 hover:bg-gray-700/50">
+                        <td class="py-3 px-4 font-semibold">${period}</td>
+                        <td class="py-3 px-4 text-gray-400">${data.date}</td>
+                        <td class="py-3 px-4">${data.front.map(n => `<span class="inline-block w-6 h-6 rounded-full bg-purple-600 text-xs text-center leading-6 mr-1">${formatNumber(n)}</span>`).join('')}</td>
+                        <td class="py-3 px-4">${data.back.map(n => `<span class="inline-block w-6 h-6 rounded-full bg-pink-600 text-xs text-center leading-6 mr-1">${formatNumber(n)}</span>`).join('')}</td>
+                        <td class="py-3 px-4">${sum}</td>
+                    </tr>
+                `;
+            }).join('');
+            document.getElementById('history-table').innerHTML = historyHtml;
+        }
+
+        // 刷新数据
+        function refreshData() {
+            const btn = document.getElementById('refresh-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 生成中...';
+            
+            setTimeout(() => {
+                renderPage();
+                btn.disabled = false;
+                btn.textContent = '🔄 刷新预测';
+            }, 500);
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePeriodSelectors();
+            renderPage();
+        });
+    </script>
+</body>
+</html>
